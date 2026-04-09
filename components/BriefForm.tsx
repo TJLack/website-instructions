@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { BriefInput, BriefResult } from "@/lib/types";
 
 const industries = ["Home Services", "Legal", "Healthcare", "Finance", "Other"];
@@ -23,27 +23,39 @@ const defaultState: BriefInput = {
 export function BriefForm({ onGenerated }: { onGenerated: (brief: BriefResult) => void }) {
   const [form, setForm] = useState(defaultState);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const update = (key: keyof BriefInput, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
 
+  const canSubmit = useMemo(() => {
+    return Boolean(form.businessName && form.primaryCity && form.uniqueSellingPoints && form.contactInfo && form.services.length > 0);
+  }, [form]);
+
   async function generateBrief() {
     setLoading(true);
-    const payload = {
-      ...form,
-      secondaryCities: form.secondaryCities,
-      services: form.services,
-      competitorUrls: form.competitorUrls
-    };
+    setError(null);
 
-    const response = await fetch("/api/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+    try {
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form)
+      });
 
-    const data = await response.json();
-    onGenerated(data.brief);
-    setLoading(false);
+      const data = await response.json();
+
+      if (!response.ok) {
+        const issueList = Array.isArray(data.issues) ? ` ${data.issues.join(" ")}` : "";
+        throw new Error((data.error || "Failed to generate brief.") + issueList);
+      }
+
+      onGenerated(data.brief);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to generate brief.";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -67,9 +79,10 @@ export function BriefForm({ onGenerated }: { onGenerated: (brief: BriefResult) =
         <input className="input" placeholder="Brand Tone" onChange={(e) => update("brandTone", e.target.value)} />
         <input className="input" placeholder="Contact Info" onChange={(e) => update("contactInfo", e.target.value)} />
       </div>
-      <button onClick={generateBrief} className="rounded-xl bg-brand-500 px-4 py-2 font-semibold text-white hover:bg-brand-700" disabled={loading}>
+      <button onClick={generateBrief} className="rounded-xl bg-brand-500 px-4 py-2 font-semibold text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60" disabled={loading || !canSubmit}>
         {loading ? "Generating..." : "Generate Brief"}
       </button>
+      {error && <p className="rounded-lg border border-rose-300 bg-rose-50 p-3 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200">{error}</p>}
       <style jsx>{`
         .input {
           border-radius: 0.75rem;

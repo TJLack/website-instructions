@@ -6,7 +6,7 @@ Legend Brief Builder is a production-ready internal app for Key City Digital tha
 - Next.js (App Router, TypeScript)
 - Tailwind CSS
 - Node API routes
-- Puppeteer PDF generation (from server-rendered HTML template)
+- Puppeteer PDF generation (from server-rendered HTML template) with pdf-lib fallback for environments missing Chromium dependencies
 
 ## Setup
 ```bash
@@ -44,7 +44,7 @@ Open `http://localhost:3000`.
 
 ## API Endpoints
 - `POST /api/generate` → returns brief JSON
-- `POST /api/pdf` → returns generated PDF bytes (`application/pdf`)
+- `POST /api/pdf` → returns generated PDF bytes (`application/pdf`) using Puppeteer first, then pdf-lib fallback if Chromium cannot launch
 
 ## Notes
 - Time estimator enforces a hard maximum of 30 hours by reducing service scope and optional pages.

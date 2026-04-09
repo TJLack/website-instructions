@@ -1,21 +1,36 @@
 "use client";
 
 import { BriefResult } from "@/lib/types";
+import { useState } from "react";
 
 export function BriefPreview({ brief }: { brief: BriefResult }) {
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+
   async function downloadPdf() {
-    const response = await fetch("/api/pdf", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ brief })
-    });
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "legend-brief.pdf";
-    a.click();
-    URL.revokeObjectURL(url);
+    setDownloadError(null);
+    try {
+      const response = await fetch("/api/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brief })
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to generate PDF.");
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "legend-brief.pdf";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to generate PDF.";
+      setDownloadError(message);
+    }
   }
 
   return (
@@ -26,6 +41,7 @@ export function BriefPreview({ brief }: { brief: BriefResult }) {
           Download PDF
         </button>
       </div>
+      {downloadError && <p className="rounded-lg border border-rose-300 bg-rose-50 p-3 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200">{downloadError}</p>}
       <p>{brief.executiveSummary}</p>
       <p className="font-semibold">Total Estimated Time: {brief.timeEstimate.totalHours.toFixed(1)} hours</p>
       <ul className="list-disc pl-6 text-sm">
