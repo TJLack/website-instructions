@@ -4,6 +4,7 @@ import { useState } from "react";
 import { BriefForm } from "@/components/BriefForm";
 import { BriefPreview } from "@/components/BriefPreview";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { GoogleBusinessResolverOrchestrator } from "@/components/GoogleBusinessResolverOrchestrator";
 import { BriefResult } from "@/lib/types";
 
 export default function HomePage() {
@@ -32,6 +33,8 @@ export default function HomePage() {
           )}
         </div>
       </div>
+
+      <GoogleBusinessResolverOrchestrator />
     </main>
   );
 }
