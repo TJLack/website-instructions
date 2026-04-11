@@ -49,3 +49,18 @@ Open `http://localhost:3000`.
 ## Notes
 - Time estimator enforces a hard maximum of 30 hours by reducing service scope and optional pages.
 - No external API calls are used.
+
+## Google Business Lookup (WebsiteLeakDetector)
+
+Set your Google Places API key before using the resolver routes:
+
+```bash
+export GOOGLE_MAPS_API_KEY=your_key_here
+```
+
+New endpoints:
+- `POST /api/google-business/resolve`
+- `POST /api/google-business/search`
+- `POST /api/google-business/details`
+
+See `docs/google-business-lookup-flow.md` for architecture and flow details.
